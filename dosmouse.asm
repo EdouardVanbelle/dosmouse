@@ -27,15 +27,15 @@ can_write	 db 0
 
 cursor		 dw ?				;sauv des attrib du curseur
 col_40		 db 0Ah				;si bit0=1 => mode 40 colonnes
-ecr_seg		 dw 0B800h			;adresse de l' ‚cran
+ecr_seg		 dw 0B800h			;adresse de l' Ã©cran
 ecr_ofs		 dw 0				;(nb: ecran couleur seulement)
-start_pos	 dw 0				;adr. b‚but s‚lection sur ecr.
+start_pos	 dw 0				;adr. bÃ©but sÃ©lection sur ecr.
 end_pos		 dw 0				;adr. fin selection sur ecr.
 old_end_pos	 dw 0				;ard de sauvegarde
 old_start_pos	 dw 0
 
 ptr_sel		 dw offset Selection		;pour int_clavier
-Selection	 db 'S‚lection vide.',241 dup (0)
+Selection	 db 'SÃ©lection vide.',241 dup (0)
 
 BEEP	macro				;macro personnelle pour les tests
 	push ax
@@ -81,17 +81,17 @@ proc	DOES_MOUSE_MOVE
 endp
 
 proc 	Multiplexeur_ED	Far		;nvelle int. (Multiplexeur)
-		sti			;autre int. autoris‚es
+		sti			;autre int. autorisÃ©es
 		pushf
-		cmp ah,0EDh		;test si on s' adresse … DOSMOUSE
+		cmp ah,0EDh		;test si on s' adresse Ã  DOSMOUSE
 		je mux_ok		;si oui ...
 		popf
 		jmp cs:Old_Multiplexeur	;sinon appel l' ancien Multiplexeur
 mux_ok:
 		popf
-		or al,al		;al= nø de fonction
+		or al,al		;al= nÂ° de fonction
 		jnz saut_mux_1		;si al <> fonction test
-		mov al,0EDh		;indiquer que D.Mouse est install‚
+		mov al,0EDh		;indiquer que D.Mouse est installÃ©
 fin_mux:
 		iret			;Retour
 saut_mux_1:
@@ -106,7 +106,7 @@ saut_mux_2:
 		iret
 endp	Multiplexeur_ED
 
-proc	mouse_ed Far		;d‚termine si la souris est affich‚e ou non
+proc	mouse_ed Far		;dÃ©termine si la souris est affichÃ©e ou non
 		pushf
 		or ax,ax
 		jnz st_mouse0
@@ -115,12 +115,12 @@ proc	mouse_ed Far		;d‚termine si la souris est affich‚e ou non
 st_mouse0:
 		cmp ax,01h		;fonction affiche souris
 		jne st_mouse1
-		inc cs:etat_mouse	;(on incr‚ment le drapeau)
+		inc cs:etat_mouse	;(on incrÃ©ment le drapeau)
 		jmp st_mouse_fin
 st_mouse1:
 		cmp ax,02h		;fonction cache souris
 		jne st_mouse2
-		dec cs:etat_mouse	;(d‚cr‚mente le drapeau)
+		dec cs:etat_mouse	;(dÃ©crÃ©mente le drapeau)
 		jmp st_mouse_fin
 st_mouse2:
 		cmp ax,021h		;fonction reset de la partie logicielle
@@ -148,8 +148,8 @@ st_mouse_fin:
 EndP	mouse_ed
 
 proc	int_clavier far		;simule l' appuie de touches sur le clavier
-		sti				; pour envoyer la s‚lection
-		cmp cs:can_write,00		; v‚rifie si on peut ‚crire
+		sti				; pour envoyer la sÃ©lection
+		cmp cs:can_write,00		; vÃ©rifie si on peut Ã©crire
 		jne write_selection
 		cli
 		jmp cs:old_int_clavier		;sinon appel ancien drv clavier
@@ -158,15 +158,15 @@ write_selection:
 		mov bx,cs:ptr_sel	;regarde ou en est le transfert de car.
 		cmp byte ptr cs:[bx],0	
 		jne do_tfr_car		;si <>0, il y a encore des car. a tfr.
-		lea bx,selection	;sinon remet le pointer … l'origine
+		lea bx,selection	;sinon remet le pointer Ã  l'origine
 		mov cs:ptr_sel,bx
 		pop bx
-		mov cs:can_write,00	;plus besoin d'ecrire (tfr termin‚)
+		mov cs:can_write,00	;plus besoin d'ecrire (tfr terminÃ©)
 		mov cs:just_write,0FFh	;on vient juste d'ecrire, on a donc 
 		cli			; plus besoin de la souris
 		jmp cs:old_int_clavier  ;ancien gestinnaire clavier
 do_tfr_car:
-		mov cs:can_run,0	;d‚sactive le controleur DosMouse
+		mov cs:can_run,0	;dÃ©sactive le controleur DosMouse
 		cmp ah,00h		;ici,fonction 0= fonction 10
 		je  fct0		; (lecture car. avec inc ptr)
 		cmp ah,10h		
@@ -179,39 +179,39 @@ do_tfr_car:
 		cli
 		jmp cs:old_int_clavier		;sinon appel ancien drv clavier
 	fct0:
-		mov al,cs:[bx]		;tranfert le car point‚ par bx
+		mov al,cs:[bx]		;tranfert le car pointÃ© par bx
 		xor ah,ah		;pas de scancode (souvent inutile)
 		inc cs:ptr_sel		;passe au car suivant (appel suivant)
 		pop bx
 		iret			;retour
 	fct1:
-		mov al,cs:[bx]		;transfert le car point‚ par bx
+		mov al,cs:[bx]		;transfert le car pointÃ© par bx
 		xor ah,ah		;pas de scancode
 		pop bx
-		cmp ah,1		;ZF=0 => car pr‚sent
+		cmp ah,1		;ZF=0 => car prÃ©sent
 		ret 2			;retour en conservant les flags
 endp
 
-proc	tache_de_fond far	;procedure appel‚e quand le DOS ne fait rien
-		sti				;int autoris‚es
+proc	tache_de_fond far	;procedure appelÃ©e quand le DOS ne fait rien
+		sti				;int autorisÃ©es
 		pushf
 		PUSHT
 		
-		cmp cs:etat_mouse,0		;la souris est-elle ‚teinte?
+		cmp cs:etat_mouse,0		;la souris est-elle Ã©teinte?
 		jz I_can			;oui
 Ho_no:
 		jmp no_I_can_not		;non, on sort
 I_can:
 		cmp cs:just_write,0
-		jne Ho_no			;vient-on juste d' ‚crire?
+		jne Ho_no			;vient-on juste d' Ã©crire?
 
 		call does_mouse_move
 		or  cx,cx
 		jz  ho_no
 
-		mov ah,0Fh			;lit mode vid‚o actuelle
+		mov ah,0Fh			;lit mode vidÃ©o actuelle
 		int 10h
-		cmp al,03			;seul le mode texte est suport‚
+		cmp al,03			;seul le mode texte est suportÃ©
 		jna I_can1
 		jmp no_I_can_not 		;si mode graphique (>3) on sort
 I_can1:
@@ -220,9 +220,9 @@ I_can1:
 		shr al,cl			
 		mov cs:col_40,al		;sauvegarde pour les calculs
 		xor al,al			;al inutile
-		xchg al,ah			;bh=page_vid‚o
-		mul bh				;calcul offset de l'‚cran car:
-		mov dh,50d			;off=(col*25*2)*page_page_vid‚o
+		xchg al,ah			;bh=page_vidÃ©o
+		mul bh				;calcul offset de l'Ã©cran car:
+		mov dh,50d			;off=(col*25*2)*page_page_vidÃ©o
 		mul dh
 		mov cs:ecr_ofs,ax		;sauv l'offset
 
@@ -230,9 +230,9 @@ I_can1:
 		int 10h
 		mov cs:cursor,cx		;on la sauvegarde(pour restit.)
 		mov ah,01h
-		mov cx,2020h			;‚teint le curseur texte
+		mov cx,2020h			;Ã©teint le curseur texte
 		int 10h
-		test cs:args_flags,1000b	;la souris part d'o— ?
+		test cs:args_flags,1000b	;la souris part d'oÃ¹ ?
 		jz no_relocation		;si ZF,part de ancien situation
 		mov ah,03h			
 		int 10h				;lit pos du curseur
@@ -243,7 +243,7 @@ I_can1:
 		shr bl,1
 		adc cl,0			;lit la bit0 via ZC
 		shl ax,cl			;=mul 8 ou 16
-		push ax				;sauv r‚sultat sur la pile
+		push ax				;sauv rÃ©sultat sur la pile
 		xor ah,ah
 		mov al,dh			;al=dh=ligne(=pos en Y)
 		mov cl,3			
@@ -578,7 +578,7 @@ installe:
 		mov ax,3100h
 		int 21h
 
-;********************************** la partie qui suit ne reste pas en m‚moire
+;********************************** la partie qui suit ne reste pas en mÃ©moire
 Debut:
 		mov ah,30h
 		int 21h
@@ -696,7 +696,7 @@ Doit_installer:
 		lea bx,no_mouse
 		jmp erreur
 drv_souris_ok:
-		;************** Ici les ‚changes d'interruptions
+		;************** Ici les Ã©changes d'interruptions
 		mov ax,0352Fh
 		int 21h
 		mov word ptr cs:old_multiplexeur,Bx
@@ -820,29 +820,29 @@ endp
 
 Auteur		db 'DosMouse.com    Version 1.0 Copyright (c) 1997'
 		db ' VANBELLE Edouard',10,13,'$'
-dm_inst		db 'DosMouse install‚',10,13,'$'
-no_mouse	db 'Installation stopp‚e: le driver souris n'' est pas en'
-		db ' m‚moire',10,13,'$'
-bascule		db 'DosMouse reconfigur‚',10,13,'$'
-dj_inst		db 'DosMouse d‚j… install‚',10,13,'$'
+dm_inst		db 'DosMouse installÃ©',10,13,'$'
+no_mouse	db 'Installation stoppÃ©e: le driver souris n'' est pas en'
+		db ' mÃ©moire',10,13,'$'
+bascule		db 'DosMouse reconfigurÃ©',10,13,'$'
+dj_inst		db 'DosMouse dÃ©jÃ  installÃ©',10,13,'$'
 Usage		db 10,13,'Syntaxe: DOSMOUSE [/options+|-] [/v] [/r]',10,13
 		db 10,13,' V = affiche le mode DosMouse (visualisation des'
-		db ' r‚glages)'
-		db 10,13,'option peut ˆtre l''une des quatre lettres: P,E,L,C'
+		db ' rÃ©glages)'
+		db 10,13,'option peut Ãªtre l''une des quatre lettres: P,E,L,C'
 		db 10,13,' P = ajout automatique du Point d''extension sur'
 		db ' les fichiers'
-		db 10,13,' E = simulation de l''appuie de la touche Entr‚e'
-		db ' aprŠs une s‚l‚ction'
-		db 10,13,' L = d‚placement de la s‚lection avec la souris en'
+		db 10,13,' E = simulation de l''appuie de la touche EntrÃ©e'
+		db ' aprÃ¨s une sÃ©lÃ©ction'
+		db 10,13,' L = dÃ©placement de la sÃ©lection avec la souris en'
 		db ' mode Ligne horizontale'
-		db 10,13,' C = repositionnement de la souris … l''emplacement'
+		db 10,13,' C = repositionnement de la souris Ã  l''emplacement'
 		db ' actuel du Curseur'
-		db 10,13,' (chaque option doit ˆtre suivie de + ou - sauf pour'
+		db 10,13,' (chaque option doit Ãªtre suivie de + ou - sauf pour'
 		db ' ''v'' et ''r'')'
-		db 10,13,' + = activation de l''option,    - = d‚sactivation.'
+		db 10,13,' + = activation de l''option,    - = dÃ©sactivation.'
 		db 10,13
 		db 10,13,' exemple: DOSMOUSE /p+ /e- /v /c+'
-		db 10,13,'       (par d‚faut, DosMouse d‚sactive chaque'
+		db 10,13,'       (par dÃ©faut, DosMouse dÃ©sactive chaque'
 		db ' option)',10,13,'$'
 Er_Ver_dos	db 10,13,' Version Ms-Dos trop ancienne',10,13,'$'
 Oui		db 'Oui'
@@ -850,13 +850,13 @@ dm_Etat		db 10,13,'Etat de dosmouse:'
 		db 10,13,' ajout automatique du Point d''extension sur'
 		db ' les fichiers              : '
 etat_pnt	db 'Non'
-		db 10,13,' simulation de l''appuie de la touche Entr‚e aprŠs'
-		db ' une s‚lection       : '
+		db 10,13,' simulation de l''appuie de la touche EntrÃ©e aprÃ¨s'
+		db ' une sÃ©lection       : '
 etat_Ent	db 'Non'
-		db 10,13,' d‚placement de la s‚lection avec la souris en mode'
+		db 10,13,' dÃ©placement de la sÃ©lection avec la souris en mode'
 		db ' Ligne horizontale : '
 etat_sel	db 'Non'
-		db 10,13,' repositionnement de la souris … l''emplacement'
+		db 10,13,' repositionnement de la souris Ã  l''emplacement'
 		db ' actuel du Curseur      : '
 etat_org	db 'Non'
 		db 10,13,'$'
